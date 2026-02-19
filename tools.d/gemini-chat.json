@@ -1,0 +1,9 @@
+{
+  "id": "gemini-chat-dev",
+  "name": "Gemini Chat",
+  "description": "啟動 Gemini Chat 開發伺服器 (Next.js)",
+  "command": "npm",
+  "args": ["run", "dev"],
+  "cwd": "D:\\Bruce\\Coding\\Lab\\ProjectPilot\\gemini-chat",
+  "tags": ["dev-server", "next.js"]
+}
