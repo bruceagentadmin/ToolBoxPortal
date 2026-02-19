@@ -9,12 +9,14 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "jsx": "react-jsx",
+    "outDir": "dist/renderer",
     "declaration": true,
     "composite": true
   },
-  "references": [
-    { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.web.json" }
-  ],
-  "files": []
+  "include": [
+    "app/renderer/src/**/*.ts",
+    "app/renderer/src/**/*.tsx",
+    "app/shared/**/*.ts"
+  ]
 }

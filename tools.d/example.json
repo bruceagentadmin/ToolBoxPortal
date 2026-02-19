@@ -1,0 +1,8 @@
+{
+  "id": "example-notepad",
+  "name": "Notepad",
+  "description": "Open Windows Notepad for quick notes",
+  "command": "notepad.exe",
+  "cwd": "C:\\",
+  "tags": ["utility"]
+}
