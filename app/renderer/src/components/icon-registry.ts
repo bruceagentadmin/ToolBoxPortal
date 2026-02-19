@@ -39,7 +39,6 @@ import {
   SiSupabase,
   SiGraphql,
   SiSwagger,
-  SiPostman,
   SiInsomnia,
   SiNpm,
   SiYarn,
@@ -56,7 +55,19 @@ import {
   SiApachecassandra,
   SiNeo4J,
   SiPrometheus,
-  SiDatadog
+  SiDatadog,
+  SiCplusplus,
+  SiRuby,
+  SiLua,
+  SiOpenai,
+  SiHuggingface,
+  SiSelenium,
+  SiCucumber,
+  SiJunit5,
+  SiJest,
+  SiN8N,
+  SiGooglechrome,
+  SiPostman
 } from 'react-icons/si'
 import {
   VscTerminalPowershell,
@@ -88,7 +99,9 @@ import {
   VscFolder,
   VscExtensions,
   VscSymbolNamespace,
-  VscWand
+  VscWand,
+  VscRobot,
+  VscAzure
 } from 'react-icons/vsc'
 import {
   FaJava,
@@ -147,7 +160,7 @@ export const ICON_CATEGORIES: IconCategory[] = [
 
 export const ICON_REGISTRY: IconEntry[] = [
   // === Languages / Runtimes ===
-  { key: 'SiDotnet', label: '.NET', category: 'Languages', keywords: ['dotnet', '.net', 'csharp', 'c#', 'aspnet', 'blazor', 'fsharp'], component: SiDotnet },
+  { key: 'SiDotnet', label: '.NET / C#', category: 'Languages', keywords: ['dotnet', '.net', 'csharp', 'c#', 'aspnet', 'blazor', 'fsharp', 'core'], component: SiDotnet },
   { key: 'SiNodedotjs', label: 'Node.js', category: 'Languages', keywords: ['node', 'nodejs', 'express', 'nestjs'], component: SiNodedotjs },
   { key: 'SiPython', label: 'Python', category: 'Languages', keywords: ['python', 'pip', 'django', 'flask', 'fastapi', 'uvicorn'], component: SiPython },
   { key: 'FaJava', label: 'Java', category: 'Languages', keywords: ['java', 'spring', 'maven', 'gradle', 'tomcat', 'jvm'], component: FaJava },
@@ -159,7 +172,10 @@ export const ICON_REGISTRY: IconEntry[] = [
   { key: 'FaPhp', label: 'PHP', category: 'Languages', keywords: ['php', 'laravel', 'symfony', 'composer'], component: FaPhp },
   { key: 'FaSwift', label: 'Swift', category: 'Languages', keywords: ['swift', 'ios', 'xcode'], component: FaSwift },
   { key: 'SiGnubash', label: 'Bash', category: 'Languages', keywords: ['bash', 'shell', 'sh', 'zsh'], component: SiGnubash },
-  { key: 'VscTerminalPowershell', label: 'PowerShell', category: 'Languages', keywords: ['powershell', 'pwsh', 'ps1'], component: VscTerminalPowershell },
+  { key: 'VscTerminalPowershell', label: 'PowerShell', category: 'Languages', keywords: ['powershell', 'pwsh', 'ps', 'ps1'], component: VscTerminalPowershell },
+  { key: 'SiCplusplus', label: 'C++', category: 'Languages', keywords: ['c++', 'cpp', 'cplusplus'], component: SiCplusplus },
+  { key: 'SiRuby', label: 'Ruby', category: 'Languages', keywords: ['ruby', 'rails', 'gem'], component: SiRuby },
+  { key: 'SiLua', label: 'Lua', category: 'Languages', keywords: ['lua', 'script'], component: SiLua },
 
   // === Frameworks ===
   { key: 'SiReact', label: 'React', category: 'Frameworks', keywords: ['react', 'jsx', 'tsx', 'next', 'nextjs'], component: SiReact },
@@ -182,6 +198,8 @@ export const ICON_REGISTRY: IconEntry[] = [
   { key: 'FaWindows', label: 'Windows', category: 'Infrastructure', keywords: ['windows', 'win', 'win32'], component: FaWindows },
   { key: 'SiLinux', label: 'Linux', category: 'Infrastructure', keywords: ['linux', 'ubuntu', 'debian', 'centos', 'fedora'], component: SiLinux },
   { key: 'SiMacos', label: 'macOS', category: 'Infrastructure', keywords: ['macos', 'mac', 'apple', 'darwin'], component: SiMacos },
+  { key: 'VscAzure', label: 'Azure', category: 'Infrastructure', keywords: ['azure', 'microsoft', 'cloud', 'functions'], component: VscAzure },
+  { key: 'VscAzure', label: 'Azure (DevOps)', category: 'Infrastructure', keywords: ['azure', 'devops', 'pipelines'], component: VscAzure },
 
   // === Databases ===
   { key: 'SiPostgresql', label: 'PostgreSQL', category: 'Databases', keywords: ['postgres', 'postgresql', 'pg', 'psql'], component: SiPostgresql },
@@ -195,6 +213,7 @@ export const ICON_REGISTRY: IconEntry[] = [
   { key: 'SiRabbitmq', label: 'RabbitMQ', category: 'Databases', keywords: ['rabbitmq', 'amqp', 'queue', 'mq', 'message'], component: SiRabbitmq },
   { key: 'SiApachecassandra', label: 'Cassandra', category: 'Databases', keywords: ['cassandra', 'cql'], component: SiApachecassandra },
   { key: 'SiNeo4J', label: 'Neo4j', category: 'Databases', keywords: ['neo4j', 'graph', 'cypher'], component: SiNeo4J },
+  { key: 'VscDatabase', label: 'SQL Server', category: 'Databases', keywords: ['sql', 'mssql', 'server', 'tsql'], component: VscDatabase },
   { key: 'VscDatabase', label: 'Database', category: 'Databases', keywords: ['database', 'db', 'sql', 'data'], component: VscDatabase },
 
   // === Tools ===
@@ -205,7 +224,18 @@ export const ICON_REGISTRY: IconEntry[] = [
   { key: 'VscCode', label: 'VS Code', category: 'Tools', keywords: ['vscode', 'code', 'editor', 'ide'], component: VscCode },
   { key: 'SiIntellijidea', label: 'IntelliJ IDEA', category: 'Tools', keywords: ['intellij', 'idea', 'jetbrains', 'rider', 'webstorm'], component: SiIntellijidea },
   { key: 'SiSwagger', label: 'Swagger', category: 'Tools', keywords: ['swagger', 'openapi', 'api-doc'], component: SiSwagger },
+  { key: 'SiSwagger', label: 'Swagger', category: 'Tools', keywords: ['swagger', 'openapi', 'api-doc'], component: SiSwagger },
   { key: 'SiPostman', label: 'Postman', category: 'Tools', keywords: ['postman', 'api-test'], component: SiPostman },
+  { key: 'VscCode', label: 'Visual Studio', category: 'Tools', keywords: ['visual', 'studio', 'ide', 'vs'], component: VscCode },
+  { key: 'SiGooglechrome', label: 'Chrome', category: 'Tools', keywords: ['chrome', 'browser', 'google', 'web'], component: SiGooglechrome },
+  { key: 'SiN8N', label: 'n8n', category: 'Tools', keywords: ['n8n', 'workflow', 'automation', 'low-code'], component: SiN8N },
+  { key: 'SiSelenium', label: 'Selenium', category: 'Tools', keywords: ['selenium', 'test', 'automation', 'browser'], component: SiSelenium },
+  { key: 'SiCucumber', label: 'Cucumber', category: 'Tools', keywords: ['cucumber', 'bdd', 'test', 'gherkin'], component: SiCucumber },
+  { key: 'SiJunit5', label: 'JUnit', category: 'Tools', keywords: ['junit', 'test', 'java'], component: SiJunit5 },
+  { key: 'SiJest', label: 'Jest', category: 'Tools', keywords: ['jest', 'test', 'js', 'react'], component: SiJest },
+  { key: 'VscRobot', label: 'Robot / AI', category: 'Tools', keywords: ['robot', 'bot', 'agent', 'automation', 'rpa'], component: VscRobot },
+  { key: 'SiOpenai', label: 'OpenAI', category: 'Tools', keywords: ['openai', 'chatgpt', 'gpt', 'ai', 'llm', 'ml'], component: SiOpenai },
+  { key: 'SiHuggingface', label: 'Hugging Face', category: 'Tools', keywords: ['hugging', 'face', 'ai', 'model', 'ml'], component: SiHuggingface },
   { key: 'SiInsomnia', label: 'Insomnia', category: 'Tools', keywords: ['insomnia', 'rest-client'], component: SiInsomnia },
   { key: 'SiNpm', label: 'npm', category: 'Tools', keywords: ['npm', 'package-manager'], component: SiNpm },
   { key: 'SiYarn', label: 'Yarn', category: 'Tools', keywords: ['yarn'], component: SiYarn },
