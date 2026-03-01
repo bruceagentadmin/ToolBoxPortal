@@ -2,45 +2,7 @@ import { spawn } from 'child_process'
 import type { ToolConfig } from '../shared/types'
 
 export class LauncherEngine {
-  buildEncodedCommand(config: ToolConfig): string {
-    const lines: string[] = []
-
-    // Set environment variables
-    if (config.env) {
-      for (const [key, value] of Object.entries(config.env)) {
-        lines.push(`$env:${key} = '${value.replace(/'/g, "''")}'`)
-      }
-    }
-
-    // Build the inner command that runs in the visible PowerShell window
-    const escapedCwd = config.cwd.replace(/'/g, "''")
-    let innerCommand = `Set-Location '${escapedCwd}'; `
-
-    // Build the actual command to run
-    const escapedCommand = config.command.replace(/'/g, "''")
-    innerCommand += `& '${escapedCommand}'`
-
-    if (config.args && config.args.length > 0) {
-      const escapedArgs = config.args.map((a) => `'${a.replace(/'/g, "''")}'`).join(' ')
-      innerCommand += ` ${escapedArgs}`
-    }
-
-    // Add pause to keep window open after command finishes
-    innerCommand += '; Write-Host ""; Write-Host "Process finished. Press any key to close..."; $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")'
-
-    // Wrap inner command for the ArgumentList of Start-Process
-    const innerEncoded = Buffer.from(innerCommand, 'utf16le').toString('base64')
-
-    // Build the orchestrator script
-    const escapedCwdOuter = config.cwd.replace(/'/g, "''")
-    lines.push(
-      `$p = Start-Process powershell.exe -WorkingDirectory '${escapedCwdOuter}' -WindowStyle Normal -PassThru -ArgumentList '-NoExit','-EncodedCommand','${innerEncoded}'`
-    )
-    lines.push('Write-Output $p.Id')
-
-    const script = lines.join('\n')
-    return Buffer.from(script, 'utf16le').toString('base64')
-  }
+  // Removed buildEncodedCommand as WT integration handles command building inside launchTool
 
   async launchTool(config: ToolConfig): Promise<{ pid: number; startTime: Date }> {
     if (!config.command || config.command.trim() === '') {
@@ -50,49 +12,59 @@ export class LauncherEngine {
       throw new Error(`Tool "${config.id}": working directory (cwd) is empty`)
     }
 
-    const encodedCommand = this.buildEncodedCommand(config)
+    // Build the inner command to run within the terminal
+    // We use powershell -NoExit to keep the window open after execution
+    // Similar to the previous implementation, we add a pause manually for consistency
+    const escapedCwd = config.cwd.replace(/"/g, '\"')
+    const escapedCommand = config.command.replace(/"/g, '\"')
+    const escapedArgs = (config.args || []).map((a) => `"${a.replace(/"/g, '\"')}"`).join(' ')
+
+    // Build the command string that will be passed to PowerShell
+    // Set-Location, set env, run command, then pause
+    let psSequence = `Set-Location '${escapedCwd.replace(/'/g, "''")}'; `
+    
+    if (config.env) {
+      for (const [key, value] of Object.entries(config.env)) {
+        psSequence += `$env:${key} = '${value.replace(/'/g, "''")}'; `
+      }
+    }
+    
+    psSequence += `& '${escapedCommand.replace(/'/g, "''")}' ${escapedArgs}; `
+    psSequence += `Write-Host ""; Write-Host "Process finished. Press any key to close..."; $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")`
+
+    const encodedPS = Buffer.from(psSequence, 'utf16le').toString('base64')
+
+    // Construct wt.exe arguments
+    // -w "ToolBoxPortal" uses a named window instance
+    // new-tab adds a tab to that window
+    // --title sets the tab title
+    // -d sets the starting directory (though we also Set-Location in PS)
+    const wtArgs = [
+      '-w', 'ToolBoxPortal',
+      'new-tab',
+      '--title', config.name || config.id,
+      '-d', config.cwd,
+      'powershell.exe', '-NoExit', '-EncodedCommand', encodedPS
+    ]
 
     return new Promise<{ pid: number; startTime: Date }>((resolve, reject) => {
-      const proc = spawn('powershell.exe', [
-        '-NoProfile',
-        '-NonInteractive',
-        '-WindowStyle', 'Hidden',
-        '-EncodedCommand', encodedCommand
-      ], {
-        stdio: ['ignore', 'pipe', 'pipe']
-      })
-
-      let stdout = ''
-      let stderr = ''
-
-      proc.stdout.on('data', (chunk: Buffer) => {
-        stdout += chunk.toString()
-      })
-
-      proc.stderr.on('data', (chunk: Buffer) => {
-        stderr += chunk.toString()
+      const proc = spawn('wt.exe', wtArgs, {
+        detached: true,
+        stdio: 'ignore'
       })
 
       proc.on('error', (err) => {
-        reject(new Error(`Failed to spawn PowerShell for tool "${config.id}": ${err.message}`))
+        reject(new Error(`Failed to launch Windows Terminal for tool "${config.id}": ${err.message}`))
       })
 
-      proc.on('close', (code) => {
-        if (code !== 0 && stdout.trim() === '') {
-          reject(new Error(`PowerShell exited with code ${code} for tool "${config.id}": ${stderr.trim()}`))
-          return
-        }
+      // Since wt.exe with detached: true won't give us a useful PID of the actual process,
+      // and it often returns immediately, we resolve with a mock-ish result or the spawn PID.
+      // Note: Full process monitoring might be limited with wt.exe integration.
+      setTimeout(() => {
+        resolve({ pid: proc.pid || 0, startTime: new Date() })
+      }, 500)
 
-        const pidStr = stdout.trim().split(/\r?\n/)[0]
-        const pid = parseInt(pidStr, 10)
-
-        if (isNaN(pid)) {
-          reject(new Error(`Failed to parse PID from PowerShell output for tool "${config.id}": "${stdout.trim()}"`))
-          return
-        }
-
-        resolve({ pid, startTime: new Date() })
-      })
+      proc.unref()
     })
   }
 }
