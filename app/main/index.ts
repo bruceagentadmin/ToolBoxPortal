@@ -1,5 +1,5 @@
 import { app, BrowserWindow, shell } from 'electron'
-import { join } from 'path'
+import { join } from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { ToolRegistry } from './registry'
 import { LauncherEngine } from './launcher'

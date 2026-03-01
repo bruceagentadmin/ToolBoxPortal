@@ -1,10 +1,11 @@
-import { spawn } from 'child_process'
+import { spawn } from 'node:child_process'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
+import { writeFileSync } from 'node:fs'
 import type { ToolConfig } from '../shared/types'
 
 export class LauncherEngine {
-  // Removed buildEncodedCommand as WT integration handles command building inside launchTool
-
-  async launchTool(config: ToolConfig): Promise<{ pid: number; startTime: Date }> {
+  async launchTool(config: ToolConfig): Promise<{ pid: number; startTime: Date; lockFile?: string }> {
     if (!config.command || config.command.trim() === '') {
       throw new Error(`Tool "${config.id}": command is empty`)
     }
@@ -19,9 +20,12 @@ export class LauncherEngine {
     const escapedCommand = config.command.replace(/"/g, '\"')
     const escapedArgs = (config.args || []).map((a) => `"${a.replace(/"/g, '\"')}"`).join(' ')
 
+    const lockFile = join(tmpdir(), `toolbox-lock-${config.id}-${Date.now()}.tmp`)
+
     // Build the command string that will be passed to PowerShell
-    // Set-Location, set env, run command, then pause
-    let psSequence = `Set-Location '${escapedCwd.replace(/'/g, "''")}'; `
+    // 🦴 鎖定骨頭：以 OpenOrCreate 模式獨佔方式開啟鎖檔案，直到 PowerShell 進程結束為止
+    let psSequence = `$lock = [System.IO.File]::Open('${lockFile.replace(/'/g, "''")}', 'OpenOrCreate', 'Read', 'None'); `
+    psSequence += `Set-Location '${escapedCwd.replace(/'/g, "''")}'; `
     
     if (config.env) {
       for (const [key, value] of Object.entries(config.env)) {
@@ -37,17 +41,17 @@ export class LauncherEngine {
     // Construct wt.exe arguments
     // -w "ToolBoxPortal" uses a named window instance
     // new-tab adds a tab to that window
-    // --title sets the tab title
-    // -d sets the starting directory (though we also Set-Location in PS)
+    // --title sets the tab title, we use a unique prefix to monitor it
+    const toolTitle = `ToolBoxPortal:${config.id}`
     const wtArgs = [
       '-w', 'ToolBoxPortal',
       'new-tab',
-      '--title', config.name || config.id,
+      '--title', toolTitle,
       '-d', config.cwd,
       'powershell.exe', '-NoExit', '-EncodedCommand', encodedPS
     ]
 
-    return new Promise<{ pid: number; startTime: Date }>((resolve, reject) => {
+    return new Promise<{ pid: number; startTime: Date; lockFile?: string }>((resolve, reject) => {
       const proc = spawn('wt.exe', wtArgs, {
         detached: true,
         stdio: 'ignore'
@@ -57,11 +61,8 @@ export class LauncherEngine {
         reject(new Error(`Failed to launch Windows Terminal for tool "${config.id}": ${err.message}`))
       })
 
-      // Since wt.exe with detached: true won't give us a useful PID of the actual process,
-      // and it often returns immediately, we resolve with a mock-ish result or the spawn PID.
-      // Note: Full process monitoring might be limited with wt.exe integration.
       setTimeout(() => {
-        resolve({ pid: proc.pid || 0, startTime: new Date() })
+        resolve({ pid: proc.pid || 0, startTime: new Date(), lockFile })
       }, 500)
 
       proc.unref()
