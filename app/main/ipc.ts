@@ -34,8 +34,8 @@ export function registerIpcHandlers(
     }
 
     try {
-      const { pid, startTime, lockFile } = await launcher.launchTool(config)
-      monitor.trackProcess(toolId, pid, startTime, lockFile)
+      const { pid, startTime, pidFile } = await launcher.launchTool(config)
+      monitor.trackProcess(toolId, pid, startTime, pidFile)
       return { success: true }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)

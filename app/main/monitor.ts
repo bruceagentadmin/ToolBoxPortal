@@ -1,18 +1,21 @@
 import { EventEmitter } from 'node:events'
-import { openSync, closeSync, unlinkSync } from 'node:fs'
+import { readFileSync, unlinkSync } from 'node:fs'
 
 interface TrackedProcess {
   pid: number
-  lockFile?: string
+  pidFile: string
   startTime: Date
+  realPid?: number
+  deadCount: number // 🛡️ 死亡計數器：防止短暫的系統跳動導致誤判
 }
 
 export class ProcessMonitor extends EventEmitter {
   private tracked: Map<string, TrackedProcess> = new Map()
   private pollInterval: ReturnType<typeof setInterval> | null = null
 
-  trackProcess(toolId: string, pid: number, startTime: Date, lockFile?: string): void {
-    this.tracked.set(toolId, { pid, startTime, lockFile })
+  trackProcess(toolId: string, pid: number, startTime: Date, pidFile: string): void {
+    console.log(`[Monitor] Tracking tool: ${toolId}, pidFile: ${pidFile}`)
+    this.tracked.set(toolId, { pid, startTime, pidFile, deadCount: 0 })
     this.emit('status-changed', { toolId, status: 'running' })
     if (!this.pollInterval) {
       this.startPolling()
@@ -22,9 +25,7 @@ export class ProcessMonitor extends EventEmitter {
   untrackProcess(toolId: string): void {
     const info = this.tracked.get(toolId)
     if (info) {
-      if (info.lockFile) {
-        try { unlinkSync(info.lockFile) } catch (e) {}
-      }
+      try { unlinkSync(info.pidFile) } catch (e) {}
       this.tracked.delete(toolId)
       this.emit('status-changed', { toolId, status: 'stopped' })
     }
@@ -58,16 +59,53 @@ export class ProcessMonitor extends EventEmitter {
 
   private pollAll(): void {
     const toRemove: string[] = []
+    const NOW = Date.now()
 
     for (const [toolId, info] of this.tracked) {
-      let alive = false
-      if (info.lockFile) {
-        alive = this.isLockAlive(info.lockFile)
-      } else {
-        alive = this.isPidAlive(info.pid)
+      let alive = true
+      const elapsed = NOW - info.startTime.getTime()
+
+      // 1. 如果還沒拿到 realPid，嘗試讀取 pidFile
+      if (!info.realPid) {
+        try {
+          const content = readFileSync(info.pidFile, 'utf8').trim()
+          if (content) {
+            info.realPid = parseInt(content, 10)
+            console.log(`[Monitor] Got real PID for ${toolId}: ${info.realPid}`)
+          }
+        } catch (e) {
+          // 檔案可能還沒建立
+        }
       }
-      
+
+      // 2. 判斷是否存活
+      if (info.realPid) {
+        const currentlyAlive = this.isPidAlive(info.realPid)
+        if (!currentlyAlive) {
+          info.deadCount++
+          // 🛡️ 三連擊機制：必須連續 3 秒偵測到死亡，才真正判定熄燈
+          if (info.deadCount >= 3) {
+            alive = false
+          } else {
+            // console.log(`[Monitor] Tool ${toolId} (PID: ${info.realPid}) dead count: ${info.deadCount}/3`)
+            alive = true
+          }
+        } else {
+          info.deadCount = 0 // 只要活著就歸零
+          alive = true
+        }
+      } else {
+        // 如果 20 秒後還沒拿到 PID，代表啟動失敗或超時
+        if (elapsed > 20000) {
+          console.log(`[Monitor] Tool ${toolId} PID detection timeout.`)
+          alive = false
+        } else {
+          alive = true
+        }
+      }
+     
       if (!alive) {
+        console.log(`[Monitor] Tool ${toolId} (PID: ${info.realPid}) is dead.`)
         toRemove.push(toolId)
       }
     }
@@ -89,33 +127,10 @@ export class ProcessMonitor extends EventEmitter {
     }
   }
 
-  private isLockAlive(lockFile: string): boolean {
-    const info = Array.from(this.tracked.values()).find(i => i.lockFile === lockFile)
-    if (info && (Date.now() - info.startTime.getTime() < 2000)) {
-      return true // 給 PowerShell 2 秒鐘的啟動緩衝，避免太快判定為已關閉
-    }
-
-    try {
-      // 嘗試以「讀取與寫入」模式開啟檔案。
-      // 如果 PowerShell 仍然咬著檔案（獨佔模式），這裡會發生拋出例外（鎖定中）。
-      const fd = openSync(lockFile, 'r+')
-      closeSync(fd)
-      return false // 檔案可開啟 = 已解鎖 = 進程已消失
-    } catch (err: any) {
-      // EBUSY, EPERM, EACCES 代表檔案被另一個進程（PowerShell）鎖定中
-      if (err.code === 'EBUSY' || err.code === 'EPERM' || err.code === 'EACCES') {
-        return true 
-      }
-      return false
-    }
-  }
-
   destroy(): void {
     this.stopPolling()
     for (const [_, info] of this.tracked) {
-      if (info.lockFile) {
-        try { unlinkSync(info.lockFile) } catch (e) {}
-      }
+      try { unlinkSync(info.pidFile) } catch (e) {}
     }
     this.tracked.clear()
   }
