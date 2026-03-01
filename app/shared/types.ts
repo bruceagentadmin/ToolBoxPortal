@@ -10,6 +10,7 @@ export interface ToolConfig {
   env?: Record<string, string>
   processName?: string
   tabColor?: string
+  autoStart?: boolean
 }
 
 export type ToolStatus = 'stopped' | 'running' | 'error'

@@ -267,6 +267,19 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
             </div>
           </div>
 
+          <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+            <input
+              id="tool-auto-start"
+              type="checkbox"
+              checked={config.autoStart || false}
+              onChange={(e) => setConfig((prev) => ({ ...prev, autoStart: e.target.checked }))}
+              style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+            />
+            <label htmlFor="tool-auto-start" style={{ marginBottom: 0, cursor: 'pointer' }}>
+              Auto-start when app launches
+            </label>
+          </div>
+
           <div className="modal__actions">
             <button type="button" className="btn btn--cancel" onClick={onCancel}>
               Cancel

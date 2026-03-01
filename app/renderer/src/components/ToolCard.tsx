@@ -49,7 +49,26 @@ export function ToolCard({ tool, onLaunch, onEdit, onDelete }: ToolCardProps) {
           command={tool.config.command}
           tags={tool.config.tags}
         />
-        <h3 className="tool-card__name">{tool.config.name}</h3>
+        <h3 className="tool-card__name">
+          {tool.config.name}
+          {tool.config.autoStart && (
+            <span 
+              title="Auto-starts on app launch" 
+              style={{ 
+                fontSize: '0.7rem', 
+                background: 'rgba(79, 140, 255, 0.2)', 
+                color: '#4f8cff',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                marginLeft: '8px',
+                verticalAlign: 'middle',
+                fontWeight: 'normal'
+              }}
+            >
+              Auto
+            </span>
+          )}
+        </h3>
         <span className="tool-card__id">{tool.config.id}</span>
       </div>
 

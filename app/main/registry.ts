@@ -88,7 +88,8 @@ export class ToolRegistry extends EventEmitter {
       tags: Array.isArray(obj['tags']) ? (obj['tags'] as string[]) : undefined,
       env: typeof obj['env'] === 'object' && obj['env'] !== null ? (obj['env'] as Record<string, string>) : undefined,
       processName: typeof obj['processName'] === 'string' ? obj['processName'] : undefined,
-      tabColor: typeof obj['tabColor'] === 'string' ? obj['tabColor'] : undefined
+      tabColor: typeof obj['tabColor'] === 'string' ? obj['tabColor'] : undefined,
+      autoStart: typeof obj['autoStart'] === 'boolean' ? obj['autoStart'] : false
     }
   }
 

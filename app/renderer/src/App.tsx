@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useTools } from './hooks/useTools'
 import { ToolCard } from './components/ToolCard'
 import { ToolEditor } from './components/ToolEditor'
@@ -14,6 +14,24 @@ function App() {
   const [editingTool, setEditingTool] = useState<ToolEntry | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const hasAutoStarted = useRef(false)
+
+  // Auto-start logic
+  useEffect(() => {
+    if (!loading && tools.length > 0 && !hasAutoStarted.current) {
+      hasAutoStarted.current = true
+      const toAutoStart = tools.filter(t => t.config.autoStart && t.status === 'stopped')
+      
+      if (toAutoStart.length > 0) {
+        console.log(`[Frontend] Initializing auto-start for ${toAutoStart.length} tools`)
+        toAutoStart.forEach(tool => {
+          launchTool(tool.config.id).catch(err => {
+            console.error(`Failed to auto-start ${tool.config.id}:`, err)
+          })
+        })
+      }
+    }
+  }, [loading, tools, launchTool])
 
   // Collect unique tags
   const allTags = useMemo(() => {
