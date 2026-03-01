@@ -38,14 +38,19 @@ export class LauncherEngine {
     const encodedPS = Buffer.from(psSequence, 'utf16le').toString('base64')
 
     // Construct wt.exe arguments
-    const toolTitle = `ToolBoxPortal:${config.id}`
+    const toolTitle = config.name
     const wtArgs = [
       '-w', 'ToolBoxPortal',
       'new-tab',
       '--title', toolTitle,
       '-d', config.cwd,
-      'powershell.exe', '-NoExit', '-EncodedCommand', encodedPS
     ]
+
+    if (config.tabColor) {
+      wtArgs.push('--tabColor', config.tabColor)
+    }
+
+    wtArgs.push('powershell.exe', '-NoExit', '-EncodedCommand', encodedPS)
 
     return new Promise<{ pid: number; startTime: Date; pidFile: string }>((resolve, reject) => {
       const proc = spawn('wt.exe', wtArgs, {

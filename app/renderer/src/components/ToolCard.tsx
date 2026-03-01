@@ -32,9 +32,17 @@ export function ToolCard({ tool, onLaunch, onEdit, onDelete }: ToolCardProps) {
   const isRunning = tool.status === 'running'
 
   return (
-    <div className={`tool-card ${isRunning ? 'tool-card--running' : ''}`}>
+    <div 
+      className={`tool-card ${isRunning ? 'tool-card--running' : ''}`}
+      style={tool.config.tabColor ? { borderLeft: `4px solid ${tool.config.tabColor}` } : {}}
+    >
       <div className="tool-card__header">
-        <StatusIndicator status={tool.status} />
+        <div 
+          className="status-indicator" 
+          style={tool.config.tabColor ? { color: tool.config.tabColor, marginRight: '-4px' } : {}}
+        >
+          <StatusIndicator status={tool.status} />
+        </div>
         <ToolIcon
           iconKey={tool.config.icon}
           name={tool.config.name}

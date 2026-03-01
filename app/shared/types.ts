@@ -9,6 +9,7 @@ export interface ToolConfig {
   tags?: string[]
   env?: Record<string, string>
   processName?: string
+  tabColor?: string
 }
 
 export type ToolStatus = 'stopped' | 'running' | 'error'

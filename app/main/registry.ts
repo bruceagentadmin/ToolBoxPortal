@@ -87,7 +87,8 @@ export class ToolRegistry extends EventEmitter {
       icon: typeof obj['icon'] === 'string' ? obj['icon'] : undefined,
       tags: Array.isArray(obj['tags']) ? (obj['tags'] as string[]) : undefined,
       env: typeof obj['env'] === 'object' && obj['env'] !== null ? (obj['env'] as Record<string, string>) : undefined,
-      processName: typeof obj['processName'] === 'string' ? obj['processName'] : undefined
+      processName: typeof obj['processName'] === 'string' ? obj['processName'] : undefined,
+      tabColor: typeof obj['tabColor'] === 'string' ? obj['tabColor'] : undefined
     }
   }
 

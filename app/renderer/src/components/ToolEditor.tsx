@@ -18,7 +18,8 @@ const EMPTY_CONFIG: ToolConfig = {
   cwd: '',
   args: [],
   tags: [],
-  env: {}
+  env: {},
+  tabColor: ''
 }
 
 export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
@@ -43,6 +44,9 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
           ? Object.entries(tool.config.env).map(([k, v]) => `${k}=${v}`).join('\n')
           : ''
       )
+      // tabColor is already inside config state via setConfig(tool.config)
+      // but if we were using a separate text state for it, we would update it here.
+      // Since it's directly in config, setConfig(tool.config) at line 39 is enough.
     }
   }, [tool])
 
@@ -83,7 +87,8 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
       ...config,
       args,
       tags,
-      env
+      env,
+      tabColor: config.tabColor
     }
 
     onSave(finalConfig, isEditMode ? tool.config.id : undefined)
@@ -230,6 +235,36 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
               onChange={(e) => updateField('processName', e.target.value)}
               placeholder="node.exe"
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="tool-tab-color">Tab Color</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                id="tool-tab-color"
+                type="color"
+                value={config.tabColor || '#4f8cff'}
+                onChange={(e) => updateField('tabColor', e.target.value)}
+                style={{ width: '50px', height: '38px', padding: '2px', cursor: 'pointer' }}
+              />
+              <input
+                type="text"
+                value={config.tabColor || ''}
+                onChange={(e) => updateField('tabColor', e.target.value)}
+                placeholder="#RRGGBB"
+                style={{ flex: 1 }}
+              />
+              {config.tabColor && (
+                <button 
+                  type="button" 
+                  className="btn btn--edit" 
+                  style={{ padding: '4px 8px' }}
+                  onClick={() => updateField('tabColor', '')}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="modal__actions">
