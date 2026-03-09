@@ -406,15 +406,23 @@ body {
   }
 }
 
-/* ---- Tag Filter ---- */
-.tag-filter {
+/* ---- Filters ---- */
+.filters-panel {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-.tag-filter__pill {
+.tag-filter,
+.status-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-filter__pill,
+.status-filter__pill {
   padding: 5px 14px;
   border-radius: 999px;
   border: 1px solid var(--border-color);
@@ -427,19 +435,22 @@ body {
   font-family: var(--font-sans);
 }
 
-.tag-filter__pill:hover {
+.tag-filter__pill:hover,
+.status-filter__pill:hover {
   border-color: var(--color-blue);
   color: var(--text-primary);
 }
 
-.tag-filter__pill--active {
+.tag-filter__pill--active,
+.status-filter__pill--active {
   background: var(--color-blue);
   border-color: var(--color-blue);
   color: white;
 }
 
 /* ---- Empty State ---- */
-.empty-state {
+.empty-state,
+.empty-filter-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -454,17 +465,26 @@ body {
   opacity: 0.5;
 }
 
-.empty-state__title {
+.empty-state__title,
+.empty-filter-state__title {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
-.empty-state__description {
+.empty-state__description,
+.empty-filter-state__description {
   font-size: 14px;
   color: var(--text-secondary);
   max-width: 400px;
   margin-bottom: 24px;
+}
+
+.empty-filter-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 /* ---- Modal / Overlay ---- */

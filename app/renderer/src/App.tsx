@@ -3,6 +3,7 @@ import { useTools } from './hooks/useTools'
 import { ToolCard } from './components/ToolCard'
 import { ToolEditor } from './components/ToolEditor'
 import { TagFilter } from './components/TagFilter'
+import { StatusFilter, type ToolStatusFilter } from './components/StatusFilter'
 import { EmptyState } from './components/EmptyState'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import type { ToolConfig, ToolEntry } from './types'
@@ -14,6 +15,7 @@ function App() {
   const [editingTool, setEditingTool] = useState<ToolEntry | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<ToolStatusFilter>('all')
   const hasAutoStarted = useRef(false)
 
   // Auto-start logic
@@ -46,13 +48,14 @@ function App() {
     return Array.from(tagSet).sort()
   }, [tools])
 
-  // Filter tools by selected tag
+  // Filter tools by selected tag and status
   const filteredTools = useMemo(() => {
-    if (!selectedTag) return tools
-    return tools.filter(
-      (t) => t.config.tags && t.config.tags.includes(selectedTag)
-    )
-  }, [tools, selectedTag])
+    return tools.filter((tool) => {
+      const matchesTag = !selectedTag || (tool.config.tags && tool.config.tags.includes(selectedTag))
+      const matchesStatus = selectedStatus === 'all' || tool.status === selectedStatus
+      return matchesTag && matchesStatus
+    })
+  }, [tools, selectedTag, selectedStatus])
 
   const handleAddClick = () => {
     setEditingTool(null)
@@ -105,12 +108,34 @@ function App() {
         </button>
       </header>
 
-      {allTags.length > 0 && (
-        <TagFilter tags={allTags} selectedTag={selectedTag} onSelectTag={setSelectedTag} />
+      {tools.length > 0 && (
+        <div className="filters-panel">
+          <StatusFilter selectedStatus={selectedStatus} onSelectStatus={setSelectedStatus} />
+          {allTags.length > 0 && (
+            <TagFilter tags={allTags} selectedTag={selectedTag} onSelectTag={setSelectedTag} />
+          )}
+        </div>
       )}
 
       {tools.length === 0 ? (
         <EmptyState onAdd={handleAddClick} />
+      ) : filteredTools.length === 0 ? (
+        <div className="empty-filter-state">
+          <h2 className="empty-filter-state__title">No tools match this filter</h2>
+          <p className="empty-filter-state__description">
+            Try switching status or tag filters to see your tools again.
+          </p>
+          <div className="empty-filter-state__actions">
+            <button className="btn btn--edit" onClick={() => setSelectedStatus('all')}>
+              Show all statuses
+            </button>
+            {selectedTag && (
+              <button className="btn btn--edit" onClick={() => setSelectedTag(null)}>
+                Clear tag filter
+              </button>
+            )}
+          </div>
+        </div>
       ) : (
         <div className="tool-grid">
           {filteredTools.map((tool) => (
