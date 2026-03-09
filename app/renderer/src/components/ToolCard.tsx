@@ -32,44 +32,32 @@ export function ToolCard({ tool, onLaunch, onEdit, onDelete }: ToolCardProps) {
   const isRunning = tool.status === 'running'
 
   return (
-    <div 
+    <div
       className={`tool-card ${isRunning ? 'tool-card--running' : ''}`}
       style={tool.config.tabColor ? { borderLeft: `4px solid ${tool.config.tabColor}` } : {}}
     >
       <div className="tool-card__header">
-        <div 
-          className="status-indicator" 
-          style={tool.config.tabColor ? { color: tool.config.tabColor, marginRight: '-4px' } : {}}
-        >
-          <StatusIndicator status={tool.status} />
+        <div className="tool-card__header-main">
+          <ToolIcon
+            iconKey={tool.config.icon}
+            name={tool.config.name}
+            command={tool.config.command}
+            tags={tool.config.tags}
+          />
+          <div className="tool-card__title-block">
+            <div className="tool-card__title-row">
+              <h3 className="tool-card__name">{tool.config.name}</h3>
+              {tool.config.autoStart && (
+                <span className="tool-card__badge" title="Auto-starts on app launch">
+                  Auto
+                </span>
+              )}
+            </div>
+            <span className="tool-card__id">{tool.config.id}</span>
+          </div>
         </div>
-        <ToolIcon
-          iconKey={tool.config.icon}
-          name={tool.config.name}
-          command={tool.config.command}
-          tags={tool.config.tags}
-        />
-        <h3 className="tool-card__name">
-          {tool.config.name}
-          {tool.config.autoStart && (
-            <span 
-              title="Auto-starts on app launch" 
-              style={{ 
-                fontSize: '0.7rem', 
-                background: 'rgba(79, 140, 255, 0.2)', 
-                color: '#4f8cff',
-                padding: '2px 6px',
-                borderRadius: '4px',
-                marginLeft: '8px',
-                verticalAlign: 'middle',
-                fontWeight: 'normal'
-              }}
-            >
-              Auto
-            </span>
-          )}
-        </h3>
-        <span className="tool-card__id">{tool.config.id}</span>
+
+        <StatusIndicator status={tool.status} />
       </div>
 
       <p className="tool-card__description">{tool.config.description}</p>
@@ -83,11 +71,10 @@ export function ToolCard({ tool, onLaunch, onEdit, onDelete }: ToolCardProps) {
       )}
 
       <div className="tool-card__meta">
+        <span className="tool-card__meta-label">Command</span>
         <span className="tool-card__command" title={`${tool.config.command} ${tool.config.args?.join(' ') ?? ''}`}>
           {tool.config.command}
-        </span>
-        <span className="tool-card__cwd" title={tool.config.cwd}>
-          {tool.config.cwd}
+          {tool.config.args && tool.config.args.length > 0 ? ` ${tool.config.args.join(' ')}` : ''}
         </span>
       </div>
 
@@ -99,7 +86,7 @@ export function ToolCard({ tool, onLaunch, onEdit, onDelete }: ToolCardProps) {
           onClick={handleLaunch}
           disabled={isRunning || launching}
         >
-          {launching ? 'Starting...' : isRunning ? 'Running' : 'Launch'}
+          {launching ? 'Starting…' : isRunning ? 'Running now' : 'Start tool'}
         </button>
         <button className="btn btn--edit" onClick={() => onEdit(tool)}>
           Edit
