@@ -2,6 +2,9 @@ import type { ToolStatus } from '../types'
 
 interface StatusIndicatorProps {
   status: ToolStatus
+  onClick?: () => void
+  disabled?: boolean
+  busy?: boolean
 }
 
 const colorMap: Record<ToolStatus, string> = {
@@ -16,14 +19,22 @@ const labelMap: Record<ToolStatus, string> = {
   error: 'Error'
 }
 
-export function StatusIndicator({ status }: StatusIndicatorProps) {
+export function StatusIndicator({ status, onClick, disabled = false, busy = false }: StatusIndicatorProps) {
+  const isInteractive = Boolean(onClick) && !disabled
+
   return (
-    <span className={`status-indicator status-indicator--${status}`} title={labelMap[status]}>
+    <button
+      type="button"
+      className={`status-indicator status-indicator--${status} ${isInteractive ? 'status-indicator--interactive' : ''}`}
+      title={labelMap[status]}
+      onClick={onClick}
+      disabled={disabled}
+    >
       <span
-        className={`status-dot ${status}`}
+        className={`status-dot ${status} ${busy ? 'is-busy' : ''}`}
         style={{ backgroundColor: colorMap[status] }}
       />
-      <span className="status-indicator__label">{labelMap[status]}</span>
-    </span>
+      <span className="status-indicator__label">{busy ? 'Starting…' : labelMap[status]}</span>
+    </button>
   )
 }
