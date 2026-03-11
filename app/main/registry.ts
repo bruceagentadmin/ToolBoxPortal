@@ -4,6 +4,7 @@ import { readdir, readFile, writeFile, unlink, mkdir } from 'fs/promises'
 import { join, extname, basename } from 'path'
 import { watch, type FSWatcher } from 'chokidar'
 import type { ToolConfig } from '../shared/types'
+import { normalizeAutoStartDays } from '../shared/auto-start'
 
 export class ToolRegistry extends EventEmitter {
   private tools: Map<string, ToolConfig> = new Map()
@@ -89,7 +90,8 @@ export class ToolRegistry extends EventEmitter {
       env: typeof obj['env'] === 'object' && obj['env'] !== null ? (obj['env'] as Record<string, string>) : undefined,
       processName: typeof obj['processName'] === 'string' ? obj['processName'] : undefined,
       tabColor: typeof obj['tabColor'] === 'string' ? obj['tabColor'] : undefined,
-      autoStart: typeof obj['autoStart'] === 'boolean' ? obj['autoStart'] : false
+      autoStart: typeof obj['autoStart'] === 'boolean' ? obj['autoStart'] : false,
+      autoStartDays: normalizeAutoStartDays(Array.isArray(obj['autoStartDays']) ? (obj['autoStartDays'] as number[]) : undefined)
     }
   }
 

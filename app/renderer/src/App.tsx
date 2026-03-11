@@ -7,6 +7,7 @@ import { StatusFilter, type ToolStatusFilter } from './components/StatusFilter'
 import { EmptyState } from './components/EmptyState'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import type { ToolConfig, ToolEntry } from './types'
+import { shouldAutoStartToday } from '../../shared/auto-start'
 import './styles.css'
 
 function App() {
@@ -22,13 +23,15 @@ function App() {
   useEffect(() => {
     if (!loading && tools.length > 0 && !hasAutoStarted.current) {
       hasAutoStarted.current = true
-      const toAutoStart = tools.filter(t => t.config.autoStart && t.status === 'stopped')
-      
+      const toAutoStart = tools.filter(
+        (tool) => tool.config.autoStart && tool.status === 'stopped' && shouldAutoStartToday(tool.config.autoStartDays)
+      )
+
       if (toAutoStart.length > 0) {
-        console.log(`[Frontend] Initializing auto-start for ${toAutoStart.length} tools`)
-        toAutoStart.forEach(tool => {
-          launchTool(tool.config.id).catch(err => {
-            console.error(`Failed to auto-start ${tool.config.id}:`, err)
+        console.log(`[Frontend] 初始化 ${toAutoStart.length} 個符合星期條件的自動執行工具`)
+        toAutoStart.forEach((tool) => {
+          launchTool(tool.config.id).catch((err) => {
+            console.error(`自動執行 ${tool.config.id} 失敗:`, err)
           })
         })
       }

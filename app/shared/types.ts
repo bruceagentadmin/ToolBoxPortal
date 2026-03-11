@@ -11,6 +11,7 @@ export interface ToolConfig {
   processName?: string
   tabColor?: string
   autoStart?: boolean
+  autoStartDays?: number[]
 }
 
 export type ToolStatus = 'stopped' | 'running' | 'error'
