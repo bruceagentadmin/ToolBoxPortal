@@ -5,3 +5,4 @@ release/
 *.tsbuildinfo
 nul
 nul
+.idea/
