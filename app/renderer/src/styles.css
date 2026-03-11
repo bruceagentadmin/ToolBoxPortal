@@ -601,6 +601,41 @@ body {
   color: var(--color-red);
 }
 
+.form-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.weekday-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.weekday-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.weekday-pill:hover {
+  border-color: var(--color-blue);
+  color: var(--text-primary);
+}
+
+.weekday-pill--active {
+  background: var(--color-blue);
+  border-color: var(--color-blue);
+  color: white;
+}
+
 /* ---- Confirm Dialog ---- */
 .confirm-dialog__message {
   font-size: 15px;

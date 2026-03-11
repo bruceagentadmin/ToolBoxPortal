@@ -3,6 +3,7 @@ import type { ToolConfig, ToolEntry } from '../types'
 import { ToolIcon } from './ToolIcon'
 import { IconPicker } from './IconPicker'
 import { autoResolveIconKey } from './icon-registry'
+import { AUTO_START_DAY_OPTIONS, AUTO_START_WEEKDAYS, normalizeAutoStartDays } from '../../../shared/auto-start'
 
 interface ToolEditorProps {
   tool: ToolEntry | null  // null = create mode
@@ -19,12 +20,18 @@ const EMPTY_CONFIG: ToolConfig = {
   args: [],
   tags: [],
   env: {},
-  tabColor: ''
+  tabColor: '',
+  autoStart: false,
+  autoStartDays: [...AUTO_START_WEEKDAYS]
 }
 
 export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
   const isEditMode = tool !== null
-  const [config, setConfig] = useState<ToolConfig>(tool?.config ?? { ...EMPTY_CONFIG })
+  const [config, setConfig] = useState<ToolConfig>(() => ({
+    ...EMPTY_CONFIG,
+    ...(tool?.config ?? {}),
+    autoStartDays: normalizeAutoStartDays(tool?.config.autoStartDays)
+  }))
   const [argsText, setArgsText] = useState((tool?.config.args ?? []).join(', '))
   const [tagsText, setTagsText] = useState((tool?.config.tags ?? []).join(', '))
   const [envText, setEnvText] = useState(
@@ -36,7 +43,10 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
   useEffect(() => {
     if (tool) {
-      setConfig(tool.config)
+      setConfig({
+        ...tool.config,
+        autoStartDays: normalizeAutoStartDays(tool.config.autoStartDays)
+      })
       setArgsText((tool.config.args ?? []).join(', '))
       setTagsText((tool.config.tags ?? []).join(', '))
       setEnvText(
@@ -44,10 +54,13 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
           ? Object.entries(tool.config.env).map(([k, v]) => `${k}=${v}`).join('\n')
           : ''
       )
-      // tabColor is already inside config state via setConfig(tool.config)
-      // but if we were using a separate text state for it, we would update it here.
-      // Since it's directly in config, setConfig(tool.config) at line 39 is enough.
+      return
     }
+
+    setConfig({ ...EMPTY_CONFIG })
+    setArgsText('')
+    setTagsText('')
+    setEnvText('')
   }, [tool])
 
   const validate = (): boolean => {
@@ -88,7 +101,8 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
       args,
       tags,
       env,
-      tabColor: config.tabColor
+      tabColor: config.tabColor,
+      autoStartDays: normalizeAutoStartDays(config.autoStartDays)
     }
 
     onSave(finalConfig, isEditMode ? tool.config.id : undefined)
@@ -103,6 +117,20 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
         return next
       })
     }
+  }
+
+  const toggleAutoStartDay = (day: number) => {
+    setConfig((prev) => {
+      const currentDays = normalizeAutoStartDays(prev.autoStartDays)
+      const nextDays = currentDays.includes(day)
+        ? currentDays.filter((item) => item !== day)
+        : [...currentDays, day].sort((a, b) => a - b)
+
+      return {
+        ...prev,
+        autoStartDays: nextDays.length > 0 ? nextDays : currentDays
+      }
+    })
   }
 
   return (
@@ -272,13 +300,43 @@ export function ToolEditor({ tool, onSave, onCancel }: ToolEditorProps) {
               id="tool-auto-start"
               type="checkbox"
               checked={config.autoStart || false}
-              onChange={(e) => setConfig((prev) => ({ ...prev, autoStart: e.target.checked }))}
+              onChange={(e) =>
+                setConfig((prev) => ({
+                  ...prev,
+                  autoStart: e.target.checked,
+                  autoStartDays: normalizeAutoStartDays(prev.autoStartDays)
+                }))
+              }
               style={{ width: '20px', height: '20px', cursor: 'pointer' }}
             />
             <label htmlFor="tool-auto-start" style={{ marginBottom: 0, cursor: 'pointer' }}>
-              Auto-start when app launches
+              啟用自動執行
             </label>
           </div>
+
+          {config.autoStart && (
+            <div className="form-group">
+              <label>自動執行星期</label>
+              <div className="weekday-picker">
+                {AUTO_START_DAY_OPTIONS.map((day) => {
+                  const selectedDays = normalizeAutoStartDays(config.autoStartDays)
+                  const isSelected = selectedDays.includes(day.value)
+
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      className={`weekday-pill ${isSelected ? 'weekday-pill--active' : ''}`}
+                      onClick={() => toggleAutoStartDay(day.value)}
+                    >
+                      {day.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <span className="form-hint">預設為週一到週五，至少保留一天。</span>
+            </div>
+          )}
 
           <div className="modal__actions">
             <button type="button" className="btn btn--cancel" onClick={onCancel}>
