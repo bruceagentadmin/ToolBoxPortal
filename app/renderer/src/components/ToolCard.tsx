@@ -57,7 +57,12 @@ export function ToolCard({ tool, onLaunch, onEdit, onDelete }: ToolCardProps) {
           </div>
         </div>
 
-        <StatusIndicator status={tool.status} />
+        <StatusIndicator
+          status={tool.status}
+          onClick={isRunning ? undefined : handleLaunch}
+          disabled={isRunning || launching}
+          busy={launching}
+        />
       </div>
 
       <p className="tool-card__description">{tool.config.description}</p>
@@ -81,13 +86,6 @@ export function ToolCard({ tool, onLaunch, onEdit, onDelete }: ToolCardProps) {
       {error && <div className="tool-card__error">{error}</div>}
 
       <div className="tool-card__actions">
-        <button
-          className={`btn btn--launch ${isRunning ? 'btn--disabled' : ''}`}
-          onClick={handleLaunch}
-          disabled={isRunning || launching}
-        >
-          {launching ? 'Starting…' : isRunning ? 'Running now' : 'Start tool'}
-        </button>
         <button className="btn btn--edit" onClick={() => onEdit(tool)}>
           Edit
         </button>
